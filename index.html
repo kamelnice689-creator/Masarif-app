@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق إدارة المصاريف اليومية</title>
+    <!-- تضمين مكتبة html2pdf لتصدير وحفظ ملف الـ PDF مباشرة -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        /* تنسيق الأسطر المتقابلة (جنباً إلى جنب) */
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-col {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #4b6584;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #dcdde1;
+            border-radius: 8px;
+            font-size: 15px;
+            text-align: right;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            border-color: #3498db;
+            background-color: #fff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+
+        /* تنسيق وتحديث الأزرار لتكون أكثر حداثة وتنظيماً */
+        button {
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 200ms ease-in-out;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* ألوان وتصاميم الأزرار المخصصة */
+        .add-btn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            font-size: 15px;
+        }
+        .add-btn:hover {
+            background: linear-gradient(135deg, #27ae60, #219653);
+        }
+
+        .search-section, .buttons-row-section, .export-section, .main-summary-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #edf2f7;
+        }
+        .search-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            margin-top: 0;
+        }
+        .search-btn:hover {
+            background: linear-gradient(135deg, #2980b9, #1f618d);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            margin-top: 0;
+        }
+        .reset-btn:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+        }
+
+        .monthly-btn {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            margin-top: 0;
+        }
+        .monthly-btn:hover {
+            background: linear-gradient(135deg, #8e44ad, #732d91);
+        }
+
+        .details-btn {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+            margin-top: 0;
+        }
+        .details-btn:hover {
+            background: linear-gradient(135deg, #16a085, #138d75);
+        }
+
+        .pdf-btn {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            font-size: 15px;
+        }
+        .pdf-btn:hover {
+            background: linear-gradient(135deg, #d35400, #ba4a00);
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #e8f8f5, #d1f2eb);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #16a085;
+            border: 1px solid #a3e4d7;
+        }
+        table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 13px;
+            width: auto;
+            margin: 2px;
+        }
+        .edit-btn {
+            background: linear-gradient(135deg, #f39c12, #d68910);
+        }
+        .delete-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        .monthly-box {
+            display: none;
+            margin-top: 15px;
+            background: #fdfefe;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        #detailsContainer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>إدارة المصاريف اليومية</h2>
+
+    <!-- حقل خفي لتخزين مؤشر التعديل -->
+    <input type="hidden" id="editIndex" value="-1">
+
+    <!-- نموذج إضافة/تعديل المصروف (التاريخ والقيمة في سطر واحد) -->
+    <div class="form-row">
+        <div class="form-col">
+            <label for="expenseDate">التاريخ:</label>
+            <input type="date" id="expenseDate">
+        </div>
+        <div class="form-col">
+            <label for="expenseAmount">قيمة المصروف:</label>
+            <input type="number" id="expenseAmount" placeholder="أدخل القيمة بالرقم">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="expenseType">نوع المصروف:</label>
+        <input type="text" id="expenseType" placeholder="مثال: طعام، نقل، فواتير...">
+    </div>
+    <button id="saveButton" class="add-btn" onclick="saveOrUpdateExpense()">➕ إضافة المصروف</button>
+
+    <!-- قسم البحث بالتاريخ (حقل البحث وأزرار البحث وإلغاء البحث بتنسيق متقابل) -->
+    <div class="search-section">
+        <div class="form-group">
+            <label for="searchDate">بحث بالتاريخ:</label>
+            <input type="date" id="searchDate">
+        </div>
+        <div class="form-row">
+            <div class="form-col">
+                <button class="search-btn" onclick="searchByDate()">🔍 بحث</button>
+            </div>
+            <div class="form-col">
+                <button class="reset-btn" onclick="resetSearch()">🔄 إلغاء وعرض الكل</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- قسم الأزرار المتقابلة: المجموع الشهري والتفاصيل -->
+    <div class="buttons-row-section">
+        <div class="form-row">
+            <div class="form-col">
+                <button class="monthly-btn" onclick="toggleMonthlySummary()">📊 المجموع الشهري</button>
+            </div>
+            <div class="form-col">
+                <button class="details-btn" id="toggleDetailsBtn" onclick="toggleDetails()">👁️ تفاصيل الجدول</button>
+            </div>
+        </div>
+
+        <!-- صندوق المجموع الشهري (يظهر تحت الأزرار عند الضغط على زره) -->
+        <div class="monthly-box" id="monthlyBox">
+            <table>
+                <thead>
+                    <tr>
+                        <th>الشهر</th>
+                        <th>المجموع الكلي للشهر</th>
+                    </tr>
+                </thead>
+                <tbody id="monthlyTableBody">
+                    <!-- سيتم تعبئة الأشهر هنا -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- المجموع الكلي العام الظاهر دائماً على الواجهة -->
+    <div class="main-summary-section">
+        <div class="summary" id="totalSummary">
+            المجموع الكلي للمصاريف: 0
+        </div>
+    </div>
+
+    <!-- الجزء المخصص لجدول المصاريف (مخفي افتراضياً ويظهر عند الضغط على التفاصيل) -->
+    <div id="detailsContainer">
+        <div id="printableArea" style="background: #ffffff; padding: 10px;">
+            <h3 style="text-align: center; color: #2c3e50; margin-top: 20px;">جدول المصاريف اليومية</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>القيمة</th>
+                        <th>النوع</th>
+                        <th class="action-col">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="expenseTableBody">
+                    <!-- سيتم تعبئة البيانات هنا تلقائياً -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- زر طباعة وتصدير A4 بصيغة PDF -->
+        <div class="export-section">
+            <button class="pdf-btn" onclick="printToA4PDF()">📄 طباعة وحفظ جدول المصاريف (A4 PDF)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+    window.onload = function() {
+        displayExpenses(expenses);
+        generateMonthlySummary();
+    };
+
+    function saveOrUpdateExpense() {
+        const date = document.getElementById('expenseDate').value;
+        const amount = document.getElementById('expenseAmount').value;
+        const type = document.getElementById('expenseType').value;
+        const editIndex = document.getElementById('editIndex').value;
+
+        if (!date || !amount || !type) {
+            alert('الرجاء ملء جميع الخانات!');
+            return;
+        }
+
+        const saveBtn = document.getElementById('saveButton');
+        if (editIndex === "-1") {
+            expenses.push({ date: date, amount: parseFloat(amount), type: type });
+        } else {
+            expenses[editIndex] = { date: date, amount: parseFloat(amount), type: type };
+            document.getElementById('editIndex').value = "-1";
+            saveBtn.innerHTML = "➕ إضافة المصروف";
+            saveBtn.className = "add-btn";
+        }
+
+        saveAndRefresh();
+        clearForm();
+    }
+
+    function clearForm() {
+        document.getElementById('expenseDate').value = '';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseType').value = '';
+    }
+
+    function saveAndRefresh() {
+        localStorage.setItem('expenses', JSON.stringify(expenses));
+        displayExpenses(expenses);
+        generateMonthlySummary();
+    }
+
+    function displayExpenses(dataArray) {
+        const tbody = document.getElementById('expenseTableBody');
+        tbody.innerHTML = '';
+        
+        let total = 0;
+
+        dataArray.forEach((item) => {
+            const originalIndex = expenses.indexOf(item);
+            total += item.amount;
+
+            const row = `<tr>
+                <td>${item.date}</td>
+                <td>${item.amount}</td>
+                <td>${item.type}</td>
+                <td class="action-col">
+                    <button class="action-btn edit-btn" onclick="editExpense(${originalIndex})">✏️ تعديل</button>
+                    <button class="action-btn delete-btn" onclick="deleteExpense(${originalIndex})">🗑️ حذف</button>
+                </td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        document.getElementById('totalSummary').innerText = `المجموع الكلي للمصاريف: ${total}`;
+    }
+
+    function deleteExpense(index) {
+        if (confirm('هل أنت متأكد من حذف هذا المصروف؟')) {
+            expenses.splice(index, 1);
+            saveAndRefresh();
+        }
+    }
+
+    function editExpense(index) {
+        const item = expenses[index];
+        document.getElementById('expenseDate').value = item.date;
+        document.getElementById('expenseAmount').value = item.amount;
+        document.getElementById('expenseType').value = item.type;
+        
+        document.getElementById('editIndex').value = index;
+        const saveBtn = document.getElementById('saveButton');
+        saveBtn.innerHTML = "💾 حفظ التعديل";
+        saveBtn.className = "add-btn edit-mode-btn";
+        saveBtn.style.background = "linear-gradient(135deg, #f39c12, #d68910)";
+        
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function searchByDate() {
+        const searchDate = document.getElementById('searchDate').value;
+        if (!searchDate) {
+            alert('الرجاء اختيار تاريخ للبحث!');
+            return;
+        }
+
+        const filtered = expenses.filter(item => item.date === searchDate);
+        displayExpenses(filtered);
+    }
+
+    function resetSearch() {
+        document.getElementById('searchDate').value = '';
+        displayExpenses(expenses);
+    }
+
+    function generateMonthlySummary() {
+        const monthsNames = [
+            "يناير (1)", "فبراير (2)", "مارس (3)", "أبريل (4)", 
+            "مايو (5)", "يونيو (6)", "يوليو (7)", "أغسطس (8)", 
+            "سبتمبر (9)", "أكتوبر (10)", "نوفمبر (11)", "ديسمبر (12)"
+        ];
+
+        let monthlyTotals = new Array(12).fill(0);
+
+        expenses.forEach(item => {
+            const parts = item.date.split('-');
+            if(parts.length === 3) {
+                const monthIndex = parseInt(parts[1]) - 1;
+                if(monthIndex >= 0 && monthIndex < 12) {
+                    monthlyTotals[monthIndex] += item.amount;
+                }
+            }
+        });
+
+        const monthlyTbody = document.getElementById('monthlyTableBody');
+        monthlyTbody.innerHTML = '';
+
+        monthlyTotals.forEach((total, index) => {
+            const row = `<tr>
+                <td>${monthsNames[index]}</td>
+                <td>${total}</td>
+            </tr>`;
+            monthlyTbody.innerHTML += row;
+        });
+    }
+
+    function toggleMonthlySummary() {
+        const box = document.getElementById('monthlyBox');
+        if (box.style.display === 'block') {
+            box.style.display = 'none';
+        } else {
+            box.style.display = 'block';
+        }
+    }
+
+    function toggleDetails() {
+        const container = document.getElementById('detailsContainer');
+        const btn = document.getElementById('toggleDetailsBtn');
+        
+        if (container.style.display === 'block') {
+            container.style.display = 'none';
+            btn.innerHTML = "👁️ تفاصيل الجدول";
+            btn.style.background = "linear-gradient(135deg, #1abc9c, #16a085)";
+        } else {
+            container.style.display = 'block';
+            btn.innerHTML = "👁️‍🗨️ إخفاء التفاصيل";
+            btn.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)";
+        }
+    }
+
+    function printToA4PDF() {
+        const element = document.getElementById('printableArea');
+        const actionCols = document.querySelectorAll('.action-col');
+        actionCols.forEach(col => col.style.display = 'none');
+
+        const options = {
+            margin:       10,
+            filename:     'expenses-a4-report.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(element).set(options).save().then(() => {
+            actionCols.forEach(col => col.style.display = '');
+        });
+    }
+</script>
+
+</body>
+</html>
